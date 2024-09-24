@@ -4,7 +4,7 @@
 
 ->The AQI (Air Quality Index) Prediction web application predicts the AQI (Air Quality Index) for a selected city based on state-wise data. It provides    users with an interactive form to select a state and a city, and displays the predicted AQI values. Additionally, it allows users to visualize the AQI   values using different types of charts like bar, line, pie, radar, and polar area.
 
-[**This application is built using HTML, CSS, JavaScript, Python (Flask or Django), and Chart.js for graphical representation.**]
+[**This application is built using HTML, CSS, JavaScript, Python (Flask), and Chart.js for graphical representation.**]
 
 **Features**
 
@@ -19,13 +19,11 @@
 ->Stylish UI: The app has a sleek, black background theme with transparent forms, providing a modern, visually appealing design.
   Technology Stack.
   
-->Backend: Flask/Django (Python)
+->Backend: Flask (Python)
 
 ->Frontend: HTML, CSS (with transparent and landscape themes), JavaScript
 
 ->Charting Library: Chart.js (for rendering interactive charts)
-
-->API: Fetches real-time AQI data using a REST API (if available) or a predefined dataset.
 
 **Prerequisites**
 
@@ -37,4 +35,4 @@
 
 ->HTML/CSS/JS knowledge for customizing the front-end (if needed).
 
-->A dataset or API for real-time AQI prediction.
+->A dataset for real-time AQI prediction.
