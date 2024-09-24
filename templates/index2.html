@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQI Prediction</title>
+    <style>
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000; 
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            overflow-y: scroll;
+            max-height: 90vh; 
+        }
+
+        .container {
+            max-width: 700px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.1); 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            width: 100%;
+            overflow-y: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: rgba(75, 192, 192, 1);
+            font-size: 26px;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        label {
+            font-size: 16px;
+            margin: 10px 5px 5px;
+            flex: 1;
+        }
+
+        select, button {
+            padding: 12px;
+            margin: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+            width: calc(30% - 20px);
+            box-sizing: border-box;
+            background-color: black; 
+            /* background-color: rgba(75, 192, 192, 0.2);   */
+            border: 1px solid rgba(75, 192, 192, 1);
+            color: white;  
+        }
+
+        button {
+            background-color:rgba(75, 192, 192, 1); 
+            color: white; 
+            cursor: pointer;
+            transition: background-color 0.3s ease; 
+            border: none; 
+        }
+
+        button:hover {
+            background-color:rgba(75, 192, 192, 0.7); 
+        }
+
+        .prediction {
+            background-color: rgba(224, 247, 250, 0.7);
+            padding: 15px;
+            border-left: 4px solid #17caac; 
+            margin-top: 20px; 
+            font-size: 18px; 
+            text-align: center; 
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px; 
+                flex-direction: column; 
+                align-items: stretch; 
+                width: auto;
+                margin-bottom: 20px;
+            }
+
+            form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            label, select, button {
+                width: 100%;
+                margin-top: 5px;
+                margin-bottom: 5px;
+                box-sizing: border-box;
+                font-size: 14px;
+            }
+            .chartbox{
+                height: 200px;
+                width: 400px;
+            }
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        body {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.5) rgba(255, 255, 255, 0.1); /* Thumb and track colors */
+        }
+    </style>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Air Quality Index Prediction</h1>
+        
+        <form action="/predict" method="POST" id="aqiForm">
+            <label for="state">Select State:</label>
+            <select name="state" id="state" onchange="this.form.submit()">
+                <option value="" disabled selected>Select your state</option>
+                {% for state in state_city_dict %}
+                    <option value="{{ state }}" {% if state == selected_state %}selected{% endif %}>{{ state }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="city">Select City:</label>
+            <select name="city" id="city" required>
+                <option value="" disabled selected>Select your city</option>
+                {% for city in cities %}
+                    <option value="{{ city }}">{{ city }}</option>
+                {% endfor %}
+            </select>
+           <button type="submit">Predict AQI</button> 
+        </form>
+
+        <br>
+        
+        {% if prediction_text %}
+          <div class="prediction">{{ prediction_text }}</div>
+        {% endif %}
+
+        <div class="chartbox">
+            <label for="charttype">Select Chart Type:</label>
+            <select id="charttype">
+                <option value="bar">Bar</option>
+                <option value="line">Line</option>
+                <option value="pie">Pie</option>
+                <option value="radar">Radar</option>
+                <option value="polarArea">Polar Area</option>
+                <option value="doughnut">Doughnut</option>
+            </select>
+            <canvas id="aqiChart"></canvas>
+        </div>
+    </div>
+    
+    <script>
+        var ctx = document.getElementById('aqiChart').getContext('2d');
+        var current_type = 'bar';
+        var aqiData = {{ aqi_data | tojson | safe }};
+        var city = "{{selected_city}}";
+        var state = "{{selected_state}}";
+        var aqiChart = new Chart(ctx, {
+            type: current_type,
+            data: {
+                labels: ['Min AQI', 'Avg AQI', 'Max AQI'],
+                datasets: [{
+                    label: 'AQI Values for {{ selected_city }} in {{ selected_state }}',
+                    data: aqiData,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive:true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        document.getElementById('charttype').addEventListener('change', function() {
+            changechart(this.value);
+        });
+
+        function changechart(new_chart) {
+            aqiChart.destroy();
+            aqiChart = new Chart(ctx, {
+                type: new_chart,
+                data: {
+                    labels: ['Min AQI', 'Avg AQI', 'Max AQI'],
+                    datasets: [{
+                        label: 'AQI Values for '+city+' in '+state,
+                        data: aqiData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive:true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
