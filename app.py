@@ -95,5 +95,4 @@ def map_prediction_to_aqi_category(predicted_category):
         return "Out of Range"
 
 if _name_ == '_main_':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True, host='0.0.0.0')
