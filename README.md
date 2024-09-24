@@ -1,4 +1,4 @@
-**AQI Prediction Web Application**
+**AQI Prediction Web Application**:
 
 **Overview**
 
